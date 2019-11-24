@@ -157,7 +157,6 @@ void tut2_and()
 	write_dd(gbm, bdd, filename);  /*Write the resulting cascade dd to a file*/
 	Cudd_Quit(gbm);
 	DEBUG_MARK;
-	return 0; 
 }
 void tut2_nand4()
 {
@@ -183,12 +182,49 @@ void tut2_nand4()
 	sprintf(filename, "./bdd/graph_nand4.dot"); /*Write .dot filename to a string*/
 	write_dd(gbm, bdd, filename);  /*Write the resulting cascade dd to a file*/
 	Cudd_Quit(gbm);
-	return 0; 
+}
+void tut_ss(){
+	DEBUG_MARK;
+	char filename[30];
+	DdManager *gbm; /* Global BDD manager. */
+	gbm = Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0); /* Initialize a new BDD manager. */
+	DdNode *bdd , *bdd_and1, *bdd_and2,
+	*x1, *x2, *x3,
+	*bdd_const1;
+	bdd_const1 = Cudd_ReadOne(gbm); /*Returns the logic one constant of the manager*/
+	x1 = Cudd_bddNewVar(gbm); /*Create a new BDD variable x1*/
+	x2 = Cudd_bddNewVar(gbm); /*Create a new BDD variable x2*/
+	x3 = Cudd_bddNewVar(gbm); /*Create a new BDD variable x2*/
+#if 0
+	// Y=x1*x2+x1*x3
+	bdd_and1=Cudd_bddAnd(gbm,x1,x2);
+	bdd_and2=Cudd_bddAnd(gbm,x1,x3);
+	bdd=Cudd_bddOr(gbm,bdd_and1,bdd_and2);
+	// bdd=Cudd_bddOr(gbm,bdd_and1,bdd_const1);
+#endif
+
+#if 1
+	// Y=x1*x2+`x1*x2
+	bdd_and1=Cudd_bddAnd(gbm,x1,x2);
+	bdd_and2=Cudd_bddAnd(gbm,Cudd_Not(x1),x2);
+	bdd=Cudd_bddOr(gbm,bdd_and1,bdd_and2);
+#endif
+
+	// bdd = Cudd_bddXor(gbm, x1, x2); /*Perform XOR Boolean operation*/
+	Cudd_Ref(bdd);          /*Update the reference count for the node just created.*/
+	bdd = Cudd_BddToAdd(gbm, bdd); /*Convert BDD to ADD for display purpose*/
+
+	print_dd (gbm, bdd, 2,4);   /*Print the dd to standard output*/
+	sprintf(filename, "./bdd/graph_ss.dot"); /*Write .dot filename to a string*/
+	write_dd(gbm, bdd, filename);  /*Write the resulting cascade dd to a file*/
+	Cudd_Quit(gbm);
+	DEBUG_MARK;
 }
 
 int main (int argc, char *argv[])
 {
-	//tut2_xor();
-	tut2_nand4();	
+	// tut2_xor();
+	// tut2_nand4();	
+	tut_ss();
 	return 0;
 }
