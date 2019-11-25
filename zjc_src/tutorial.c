@@ -1,3 +1,22 @@
+#ifdef SIMPLE_LOG
+#define DBG 0
+#else
+#define DBG 1
+#endif
+
+#if DBG
+static int LV=0;
+static int LVCALL=0;
+#define PRLV      for(int u12=LV;    u12>0;u12--) {printf(" .. ");}
+#define PRLVCALL  for(int u12=LVCALL;u12>0;u12--) {printf(" .. ");}
+#endif
+#if (DBG)
+#define DENTER \
+	LVCALL++; PRLVCALL; printf("-->%s\n",__FUNCTION__);
+#define DRETURN \
+	PRLVCALL; printf("<--%s\n",__FUNCTION__); LVCALL--;
+#endif
+
 //#include "$(WHERE)/include/util/util.h"
 #include "/home/zz/Downloads/cudd-3.0.0/util/util.h"
 #include "cudd.h"
@@ -184,7 +203,7 @@ void tut2_nand4()
 	Cudd_Quit(gbm);
 }
 void tut_ss(){
-	DEBUG_MARK;
+	DENTER;
 	char filename[30];
 	DdManager *gbm; /* Global BDD manager. */
 	gbm = Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0); /* Initialize a new BDD manager. */
@@ -195,7 +214,7 @@ void tut_ss(){
 	x1 = Cudd_bddNewVar(gbm); /*Create a new BDD variable x1*/
 	x2 = Cudd_bddNewVar(gbm); /*Create a new BDD variable x2*/
 	x3 = Cudd_bddNewVar(gbm); /*Create a new BDD variable x2*/
-#if 0
+#if 1
 	// Y=x1*x2+x1*x3
 	bdd_and1=Cudd_bddAnd(gbm,x1,x2);
 	bdd_and2=Cudd_bddAnd(gbm,x1,x3);
@@ -203,13 +222,14 @@ void tut_ss(){
 	// bdd=Cudd_bddOr(gbm,bdd_and1,bdd_const1);
 #endif
 
-#if 1
+#if 0
 	// Y=x1*x2+`x1*x2
 	bdd_and1=Cudd_bddAnd(gbm,x1,x2);
 	bdd_and2=Cudd_bddAnd(gbm,Cudd_Not(x1),x2);
 	bdd=Cudd_bddOr(gbm,bdd_and1,bdd_and2);
 #endif
 
+	checker_dominant(gbm,bdd,x1);
 	// bdd = Cudd_bddXor(gbm, x1, x2); /*Perform XOR Boolean operation*/
 	Cudd_Ref(bdd);          /*Update the reference count for the node just created.*/
 	bdd = Cudd_BddToAdd(gbm, bdd); /*Convert BDD to ADD for display purpose*/
@@ -217,14 +237,44 @@ void tut_ss(){
 	print_dd (gbm, bdd, 2,4);   /*Print the dd to standard output*/
 	sprintf(filename, "./bdd/graph_ss.dot"); /*Write .dot filename to a string*/
 	write_dd(gbm, bdd, filename);  /*Write the resulting cascade dd to a file*/
-	Cudd_Quit(gbm);
+
+
 	DEBUG_MARK;
+	// checker_dominant(gbm,bdd,x2);
+	Cudd_Quit(gbm);
+	DRETURN;
+}
+
+int checker_dominant(DdManager* gbm,DdNode* exp,DdNode* dom) {
+	DENTER;
+	DLOG(exp);
+	DLOG(dom);
+	// DdManager *gbm; /* Global BDD manager. */
+	// gbm = Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0); /* Initialize a new BDD manager. */
+	DdNode* dom_bar=Cudd_Not(dom);
+	DLOG(dom_bar);
+	DdNode* combined=Cudd_bddAnd(gbm,exp,dom_bar);
+	DLOG(Cudd_ReadOne(gbm));
+	DLOG(Cudd_ReadZero(gbm));
+	DLOG(Cudd_Not(Cudd_ReadOne(gbm)));
+	DLOG(Cudd_Not(Cudd_ReadZero(gbm)));
+	DLOG(combined);
+	DLOG(Cudd_IsConstant(combined));
+
+	char filename[30];
+	sprintf(filename, "./bdd/graph_dom.dot"); /*Write .dot filename to a string*/
+	//write_dd(gbm, combined, filename);  /*Write the resulting cascade dd to a file*/
+	write_dd(gbm, Cudd_ReadZero(gbm), filename);  /*Write the resulting cascade dd to a file*/
+	DRETURN;
+	return (combined==Cudd_ReadZero(gbm));
 }
 
 int main (int argc, char *argv[])
 {
+	DENTER;
 	// tut2_xor();
 	// tut2_nand4();	
 	tut_ss();
+	DRETURN;
 	return 0;
 }

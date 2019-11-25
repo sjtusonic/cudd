@@ -8,6 +8,7 @@ echo "---------------------------"
 echo "COMPILING"
 echo "---------------------------"
 make > make.log 
+ls -l tutorial 
 echo "---------------------------"
 echo "RUNNING"
 echo "---------------------------"
@@ -23,7 +24,7 @@ for i in $ll
 do
 	#set dot=$i
 	dot=$i
-	echo "dot=$i"
+	echo "GOT dot=$i"
 	echo "dot -Tsvg $dot -o ${dot}.svg"
 	dot -Tsvg $dot -o ${dot}.svg
 done
